@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neon FF Panel</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #070b14;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .painel {
+      max-width: 420px;
+      margin: auto;
+      padding: 22px;
+      background: #101827;
+      border: 1px solid #00d9ff;
+      border-radius: 18px;
+      box-shadow: 0 0 20px #00d9ff33;
+    }
+
+    h1 {
+      color: #00d9ff;
+      text-align: center;
+    }
+
+    p {
+      color: #a9bfd4;
+      text-align: center;
+    }
+
+    .controle {
+      margin: 22px 0;
+    }
+
+    .linha {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    output {
+      color: #00d9ff;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00d9ff;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .abrir {
+      background: #00d9ff;
+      color: #06111b;
+    }
+
+    .copiar {
+      background: transparent;
+      color: #00d9ff;
+      border: 1px solid #00d9ff;
+    }
+
+    #mensagem {
+      color: #70ffb0;
+      margin-top: 16px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="painel">
+    <h1>NEON FF</h1>
+    <p>Painel de sensibilidade</p>
+
+    <div id="controles"></div>
+
+    <button class="copiar" onclick="copiarConfig()">
+      COPIAR CONFIGURAÇÕES
+    </button>
+
+    <button class="abrir" onclick="abrirFreeFire()">
+      🎮 ABRIR FREE FIRE
+    </button>
+
+    <p id="mensagem" aria-live="polite"></p>
+  </main>
+
+  <script>
+    const padroes = [
+      ["Geral", 190],
+      ["Ponto vermelho", 185],
+      ["Mira 2x", 175],
+      ["Mira 4x", 155],
+      ["Mira AWM", 75],
+      ["Olhadinha", 140]
+    ];
+
+    const controles = document.getElementById("controles");
+
+    padroes.forEach(([nome, inicial], i) => {
+      let valor = inicial;
+
+      try {
+        const salvo = localStorage.getItem("neon-" + i);
+        if (salvo !== null) valor = Number(salvo);
+      } catch (e) {}
+
+      const div = document.createElement("div");
+      div.className = "controle";
+      div.innerHTML = `
+        <div class="linha">
+          <label for="s${i}">${nome}</label>
+          <output id="o${i}">${valor}</output>
+        </div>
+        <input id="s${i}" type="range"
+          min="0" max="200" value="${valor}">
+      `;
+
+      controles.appendChild(div);
+
+      const slider = div.querySelector("input");
+      const output = div.querySelector("output");
+
+      slider.addEventListener("input", () => {
+        output.value = slider.value;
+
+        try {
+          localStorage.setItem("neon-" + i, slider.value);
+        } catch (e) {}
+      });
+    });
+
+    function copiarConfig() {
+      const texto = padroes.map(([nome], i) =>
+        `${nome}: ${document.getElementById("s" + i).value}`
+      ).join("\n");
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texto)
+          .then(() => mensagem("Configurações copiadas!"))
+          .catch(() => mensagem(texto));
+      } else {
+        mensagem(texto);
+      }
+    }
+
+    function abrirFreeFire() {
+      mensagem("Tentando abrir o Free Fire...");
+
+      // Pacote comum da versão internacional.
+      // A versão instalada pode usar outro identificador.
+      window.location.href =
+        "intent://#Intent;" +
+        "package=com.dts.freefireth;" +
+        "action=android.intent.action.MAIN;" +
+        "category=android.intent.category.LAUNCHER;" +
+        "end";
+    }
+
+    function mensagem(texto) {
+      document.getElementById("mensagem").textContent = texto;
+    }
+  </script>
+</body>
+</html>
